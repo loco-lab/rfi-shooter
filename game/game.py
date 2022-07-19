@@ -30,7 +30,7 @@ SCREEN_SPEED = 2
 
 MAX_PLAYER_BULLETS = 50
 
-
+arcade.Sprite.set_texture = 1
 # Game state
 GAME_OVER = 1
 PLAY_GAME = 0
@@ -48,8 +48,6 @@ class MyGame(arcade.Window):
         self.player_list = None
         self.enemy_list = None
         self.player_bullet_list = None
-        self.enemy_bullet_list = None
-        self.shield_list = None
 
         # Textures for the enemy
         self.enemy_textures = None
@@ -74,6 +72,11 @@ class MyGame(arcade.Window):
 
     def setup_level_one(self):
         # Load the textures for the enemies, one facing left, one right
+        self.enemy_textures = []
+        texture = arcade.load_texture(":resources:images/enemies/slimeBlue.png", mirrored=True)
+        self.enemy_textures.append(texture)
+        texture = arcade.load_texture(":resources:images/enemies/slimeBlue.png")
+        self.enemy_textures.append(texture)
 
         # Create rows and columns of enemies
         x_count = 7
@@ -110,8 +113,6 @@ class MyGame(arcade.Window):
         self.player_list = arcade.SpriteList()
         self.enemy_list = arcade.SpriteList()
         self.player_bullet_list = arcade.SpriteList()
-        self.enemy_bullet_list = arcade.SpriteList()
-        self.shield_list = arcade.SpriteList(is_static=True)
 
         # Set up the player
         self.score = 0
@@ -167,31 +168,31 @@ class MyGame(arcade.Window):
     def update_enemies(self):
 
         # Move the enemy vertically
-        for enemy in self.enemy_list:
-            enemy.center_x += self.enemy_change_x
+#        for enemy in self.enemy_list:
+#            enemy.center_x += self.enemy_change_x
 
         # Check every enemy to see if any hit the edge. If so, reverse the
         # direction and flag to move down.
         move_down = False
-        for enemy in self.enemy_list:
-            if enemy.right > RIGHT_ENEMY_BORDER and self.enemy_change_x > 0:
-                self.enemy_change_x *= -1
-                move_down = True
-            if enemy.left < LEFT_ENEMY_BORDER and self.enemy_change_x < 0:
-                self.enemy_change_x *= -1
-                move_down = True
+        # for enemy in self.enemy_list:
+        #     if enemy.right > RIGHT_ENEMY_BORDER and self.enemy_change_x > 0:
+        #         self.enemy_change_x *= -1
+        #         move_down = True
+        #     if enemy.left < LEFT_ENEMY_BORDER and self.enemy_change_x < 0:
+        #         self.enemy_change_x *= -1
+        #         move_down = True
 
         # Did we hit the edge above, and need to move t he enemy down?
-        if move_down:
-            # Yes
-            for enemy in self.enemy_list:
-                # Move enemy down
-                enemy.center_y -= ENEMY_MOVE_DOWN_AMOUNT
-                # Flip texture on enemy so it faces the other way
-                if self.enemy_change_x > 0:
-                    enemy.texture = self.enemy_textures[0]
-                else:
-                    enemy.texture = self.enemy_textures[1]
+        # if move_down:
+        #     # Yes
+        #     for enemy in self.enemy_list:
+        #         # Move enemy down
+        #         enemy.center_y -= ENEMY_MOVE_DOWN_AMOUNT
+        #         # Flip texture on enemy so it faces the other way
+        #         if self.enemy_change_x > 0:
+        #             enemy.texture = self.enemy_textures[0]
+        #         else:
+        #             enemy.texture = self.enemy_textures[1]
 
     def process_player_bullets(self):
 

@@ -13,9 +13,8 @@ This example shows how to:
 If Python and Arcade are installed, this example can be run from the command line with:
 python -m arcade.examples.slime_invaders
 """
-import random
 import arcade
-import numpy
+import numpy as np
 
 SPRITE_SCALING_PLAYER = 0.5
 SPRITE_SCALING_enemy = 0.5
@@ -36,6 +35,8 @@ arcade.Sprite.set_texture = 1
 GAME_OVER = 1
 PLAY_GAME = 0
 
+NFREQS = 50
+PIXEL_SIZE = SCREEN_WIDTH // NFREQS
 
 class MyGame(arcade.Window):
     """ Main application class. """
@@ -99,6 +100,18 @@ class MyGame(arcade.Window):
                 # Add the enemy to the lists
                 self.enemy_list.append(enemy)
 
+        # Create the background of squares
+        self.squares = []
+        data_range = (self.clean_data.max() - self.clean_data.min())
+        self.clean_data -= self.clean_data.min()
+        self.clean_data /= (data_range / 255)
+        self.clean_data = self.clean_data.astype(int)
+
+        for it, t in enumerate(self.clean_data):
+            for inu, amp in enumerate(t):
+                # Create a somewhat red square at a particular location
+                self.squares.append([inu*PIXEL_SIZE, (inu+1)*PIXEL_SIZE, (it+1)*PIXEL_SIZE, it*PIXEL_SIZE, (amp, amp, 0)])
+
     def setup(self):
         """
         Set up the game and initialize the variables.
@@ -123,6 +136,7 @@ class MyGame(arcade.Window):
 
         # Set the background color
         arcade.set_background_color(arcade.color.BLACK)
+        self.read_data()
 
         self.setup_level_one()
 
@@ -131,6 +145,9 @@ class MyGame(arcade.Window):
 
         # This command has to happen before we start drawing
         self.clear()
+
+        for sq in self.squares:
+            arcade.draw_lrtb_rectangle_filled(*sq)
 
         # Draw all the sprites.
         self.enemy_list.draw()
@@ -145,6 +162,7 @@ class MyGame(arcade.Window):
             arcade.draw_text("GAME OVER", 250, 300, arcade.color.WHITE, 55)
             self.set_mouse_visible(True)
             
+
     def on_mouse_motion(self, x, y, dx, dy):
         """
         Called whenever the mouse moves.
@@ -230,6 +248,13 @@ class MyGame(arcade.Window):
             if bullet.bottom > SCREEN_HEIGHT:
                 bullet.remove_from_sprite_lists()
 
+    def update_background_squares(self):
+        for sq in self.squares:
+            sq[2] -= SCREEN_SPEED
+            sq[3] -= SCREEN_SPEED
+
+        self.squares = [s for s in self.squares if s[3]>-PIXEL_SIZE]
+
     def on_update(self, delta_time):
         """ Movement and game logic """
 
@@ -238,24 +263,33 @@ class MyGame(arcade.Window):
 
         self.update_enemies()
         self.process_player_bullets()
+        self.update_background_squares()
 
         if len(self.enemy_list) == 0:
             self.setup_level_one()
 
-    #def read_data(self):
-        #read data from an npz file
-        #from numpy import load
-        #data = load('myFile.npy')
-        #lst = data.files
+    def read_data(self):
+        """read data from an npz file"""
+        from numpy import load
+        self.clean_data = np.random.rand(100, 50)
+        self.rfi_channels = []
+        self.rfi_amplitudes = []
 
-        #for item in lst:
-            #self.rfi_time
-            #self.rfi_frequency
-            #self.rfi_intensity
+        for t in self.clean_data:
+            n = np.random.poisson(10)
+            self.rfi_channels.append(np.random.choice(self.clean_data.shape[1], n, replace=False))
+            self.rfi_amplitudes.append(5*np.random.uniform(size=n))
+
+        # data = load('myFile.npy')
+        # lst = data.files
+
+        # for item in lst:
+        #     self.rfi_time
+        #     self.rfi_frequency
+        #     self.rfi_intensity
 
 def main():
     window = MyGame()
-    #window.read_data()
     window.setup()
     arcade.run()
 

@@ -146,6 +146,7 @@ class MyGame(arcade.Window):
         if self.game_state == GAME_OVER:
             arcade.draw_text("GAME OVER", 250, 300, arcade.color.WHITE, 55)
             self.set_mouse_visible(True)
+            
     def on_mouse_motion(self, x, y, dx, dy):
         """
         Called whenever the mouse moves.

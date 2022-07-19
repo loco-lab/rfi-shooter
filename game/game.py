@@ -144,23 +144,34 @@ class MyGame(arcade.Window):
         if self.game_state == GAME_OVER:
             arcade.draw_text("GAME OVER", 250, 300, arcade.color.WHITE, 55)
             self.set_mouse_visible(True)
+    def on_mouse_motion(self, x, y, dx, dy):
+        """
+        Called whenever the mouse moves.
+        """
+        self.player_sprite.center_x = x
 
-    def on_key_press(self, symbol, modifiers):
+    def on_mouse_press(self, x, y, button, modifiers):
         """
         Called whenever the mouse button is clicked.
         """
+        # Gunshot sound
+        arcade.play_sound(self.gun_sound)
+        # Create a bullet
+        bullet = arcade.Sprite(":resources:images/space_shooter/laserBlue01.png", SPRITE_SCALING_LASER)
 
-        # Only allow the user so many bullets on screen at a time to prevent
-        # them from spamming bullets.
-        if symbol == arcade.key.SPACE:
-            # Shoot a bullet on hitting space!
-            if len(self.player_bullet_list) < MAX_PLAYER_BULLETS:
-                bullet = arcade.Sprite(":resources:images/space_shooter/laserBlue01.png", SPRITE_SCALING_LASER)
-                bullet.center_x = self.player_sprite.center_x
-                bullet.top = self.player_sprite.top
-                bullet.change_y = BULLET_SPEED
-                self.player_bullet_list.append(bullet)
-                arcade.play_sound(self.gun_sound)
+        # The image points to the right, and we want it to point up. So
+        # rotate it.
+        bullet.angle = 90
+
+        # Give the bullet a speed
+        bullet.change_y = BULLET_SPEED
+
+        # Position the bullet
+        bullet.center_x = self.player_sprite.center_x
+        bullet.bottom = self.player_sprite.top
+
+        # Add the bullet to the appropriate lists
+        self.player_bullet_list.append(bullet)
 
 
     def update_enemies(self):

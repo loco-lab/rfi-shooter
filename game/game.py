@@ -103,7 +103,7 @@ class MyGame(arcade.Window):
         self.squares = []
         data_range = (self.clean_data.max() - self.clean_data.min())
         self.clean_data -= self.clean_data.min()
-        self.clean_data /= (data_range / 255)
+        self.clean_data = self.clean_data / (data_range / 255.0)
         self.clean_data = self.clean_data.astype(int)
 
         for it, t in enumerate(self.clean_data):

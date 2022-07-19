@@ -174,22 +174,6 @@ class MyGame(arcade.Window):
 
         # Add the bullet to the appropriate lists
         self.player_bullet_list.append(bullet)
-    # def on_key_press(self, symbol, modifiers):
-    #     """
-    #     Called whenever the mouse button is clicked.
-    #     """
-
-    #     # Only allow the user so many bullets on screen at a time to prevent
-    #     # them from spamming bullets.
-    #     if symbol == arcade.key.SPACE:
-    #         # Shoot a bullet on hitting space!
-    #         if len(self.player_bullet_list) < MAX_PLAYER_BULLETS:
-    #             bullet = arcade.Sprite(":resources:images/space_shooter/laserBlue01.png", SPRITE_SCALING_LASER)
-    #             bullet.center_x = self.player_sprite.center_x
-    #             bullet.top = self.player_sprite.top
-    #             bullet.change_y = BULLET_SPEED
-    #             self.player_bullet_list.append(bullet)
-    #             arcade.play_sound(self.gun_sound)
 
 
     def update_enemies(self):

@@ -15,6 +15,7 @@ python -m arcade.examples.slime_invaders
 """
 import random
 import arcade
+import numpy
 
 SPRITE_SCALING_PLAYER = 0.5
 SPRITE_SCALING_enemy = 0.5
@@ -49,6 +50,11 @@ class MyGame(arcade.Window):
         self.enemy_list = None
         self.player_bullet_list = None
 
+        #variables that will hold the RFI attributes
+        self.rfi_time = []
+        self.rfi_frequency = []
+        self.rfi_intensity = []
+
         # Textures for the enemy
         self.enemy_textures = None
 
@@ -71,12 +77,6 @@ class MyGame(arcade.Window):
         # arcade.configure_logging()
 
     def setup_level_one(self):
-        # Load the textures for the enemies, one facing left, one right
-        self.enemy_textures = []
-        texture = arcade.load_texture(":resources:images/enemies/slimeBlue.png", mirrored=True)
-        self.enemy_textures.append(texture)
-        texture = arcade.load_texture(":resources:images/enemies/slimeBlue.png")
-        self.enemy_textures.append(texture)
 
         # Create rows and columns of enemies
         x_count = 7
@@ -90,9 +90,7 @@ class MyGame(arcade.Window):
 
                 # Create the enemy instance
                 # enemy image from kenney.nl
-                enemy = arcade.Sprite()
-                enemy.scale = SPRITE_SCALING_enemy
-                enemy.texture = self.enemy_textures[1]
+                enemy = arcade.SpriteSolidColor(5, 5, arcade.color.RED)
 
                 # Position the enemy
                 enemy.center_x = x
@@ -244,9 +242,20 @@ class MyGame(arcade.Window):
         if len(self.enemy_list) == 0:
             self.setup_level_one()
 
+    #def read_data(self):
+        #read data from an npz file
+        #from numpy import load
+        #data = load('myFile.npy')
+        #lst = data.files
+
+        #for item in lst:
+            #self.rfi_time
+            #self.rfi_frequency
+            #self.rfi_intensity
 
 def main():
     window = MyGame()
+    #window.read_data()
     window.setup()
     arcade.run()
 

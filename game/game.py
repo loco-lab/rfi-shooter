@@ -51,12 +51,12 @@ class MyGame(arcade.Window):
         self.player_bullet_list = None
 
         #variables that will hold the RFI attributes
-        self.rfi_time = []
-        self.rfi_frequency = []
-        self.rfi_intensity = []
-
-        # Textures for the enemy
-        self.enemy_textures = None
+        #will determine where the RFI is located on the screen
+        
+        #the clean data array is the spectra array. Is a 2D array that contains the time and frequency
+        self.clean_data = [] #x and y-axis
+        self.rfi_channels = [] #is a list of lists which contain the channels that have RFI
+        self.rfi_amplitude = [] #determines the intensity of the RFI
 
         # State of the game
         self.game_state = PLAY_GAME
@@ -79,22 +79,21 @@ class MyGame(arcade.Window):
     def setup_level_one(self):
 
         # Create rows and columns of enemies
-        x_count = 7
-        x_start = 380
-        x_spacing = 60
-        y_count = 5
-        y_start = 420
-        y_spacing = 40
-        for x in range(x_start, x_spacing * x_count + x_start, x_spacing):
-            for y in range(y_start, y_spacing * y_count + y_start, y_spacing):
 
+        #the zip function will match the channel list with its corresponding amplitude list
+        #go through and zip each list again to match the channel with its corresponding amplitude
+        for i, (channel_lst, amplitude_lst) in enumerate(zip(self.rfi_channels, self.rfi_amplitude)):
+            for channel, amplitude in zip(channel_lst, amplitude_lst):
+                
                 # Create the enemy instance
-                # enemy image from kenney.nl
-                enemy = arcade.SpriteSolidColor(5, 5, arcade.color.RED)
+
+                enemy = arcade.SpriteSolidColor(PIXEL_SIZE, PIXEL_SIZE, (255, 0, 0))
+
 
                 # Position the enemy
-                enemy.center_x = x
-                enemy.center_y = y
+                enemy.left_x = channel * PIXEL_SIZE
+                enemy.center_y = i * PIXEL_SIZE
+                enemy.change_y = -SCREEN_SPEED
 
                 # Add the enemy to the lists
                 self.enemy_list.append(enemy)
@@ -241,20 +240,14 @@ class MyGame(arcade.Window):
         if len(self.enemy_list) == 0:
             self.setup_level_one()
 
-    #def read_data(self):
+    def read_data(self):
         #read data from an npz file
-        #from numpy import load
-        #data = load('myFile.npy')
-        #lst = data.files
-
-        #for item in lst:
-            #self.rfi_time
-            #self.rfi_frequency
-            #self.rfi_intensity
+        from numpy import load
+        data = load('myFile.npy')
 
 def main():
     window = MyGame()
-    #window.read_data()
+    window.read_data()
     window.setup()
     arcade.run()
 

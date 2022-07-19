@@ -20,23 +20,16 @@ SPRITE_SCALING_PLAYER = 0.5
 SPRITE_SCALING_enemy = 0.5
 SPRITE_SCALING_LASER = 0.8
 
+
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 600
 SCREEN_TITLE = "RFI Shooter"
 
 BULLET_SPEED = 5
-ENEMY_SPEED = 2
+SCREEN_SPEED = 2
 
-MAX_PLAYER_BULLETS = 3
+MAX_PLAYER_BULLETS = 50
 
-# This margin controls how close the enemy gets to the left or right side
-# before reversing direction.
-ENEMY_VERTICAL_MARGIN = 15
-RIGHT_ENEMY_BORDER = SCREEN_WIDTH - ENEMY_VERTICAL_MARGIN
-LEFT_ENEMY_BORDER = ENEMY_VERTICAL_MARGIN
-
-# How many pixels to move the enemy down when reversing
-ENEMY_MOVE_DOWN_AMOUNT = 30
 
 # Game state
 GAME_OVER = 1
@@ -68,9 +61,6 @@ class MyGame(arcade.Window):
         self.player_sprite = None
         self.score = 0
 
-        # Enemy movement
-        self.enemy_change_x = -ENEMY_SPEED
-
         # Don't show the mouse cursor
         self.set_mouse_visible(False)
 
@@ -84,11 +74,6 @@ class MyGame(arcade.Window):
 
     def setup_level_one(self):
         # Load the textures for the enemies, one facing left, one right
-        self.enemy_textures = []
-        texture = arcade.load_texture(":resources:images/enemies/slimeBlue.png", mirrored=True)
-        self.enemy_textures.append(texture)
-        texture = arcade.load_texture(":resources:images/enemies/slimeBlue.png")
-        self.enemy_textures.append(texture)
 
         # Create rows and columns of enemies
         x_count = 7
@@ -132,15 +117,10 @@ class MyGame(arcade.Window):
         self.score = 0
 
         # Image from kenney.nl
-        self.player_sprite = arcade.Sprite(":resources:images/animated_characters/female_person/"
-                                           "femalePerson_idle.png", SPRITE_SCALING_PLAYER)
-        self.player_sprite.center_x = 50
-        self.player_sprite.center_y = 40
+        self.player_sprite = arcade.Sprite(":resources:images/space_shooter/playerShip1_orange.png/", SPRITE_SCALING_PLAYER)
+        self.player_sprite.center_x = SCREEN_WIDTH / 2
+        self.player_sprite.bottom_y = 0
         self.player_list.append(self.player_sprite)
-
-        # Make each of the shields
-        for x in range(75, 800, 190):
-            self.make_shield(x)
 
         # Set the background color
         arcade.set_background_color(arcade.color.BLACK)
@@ -156,8 +136,6 @@ class MyGame(arcade.Window):
         # Draw all the sprites.
         self.enemy_list.draw()
         self.player_bullet_list.draw()
-        self.enemy_bullet_list.draw()
-        self.shield_list.draw()
         self.player_list.draw()
 
         # Render the text
@@ -168,45 +146,23 @@ class MyGame(arcade.Window):
             arcade.draw_text("GAME OVER", 250, 300, arcade.color.WHITE, 55)
             self.set_mouse_visible(True)
 
-    def on_mouse_motion(self, x, y, dx, dy):
-        """
-        Called whenever the mouse moves.
-        """
-
-        # Don't move the player if the game is over
-        if self.game_state == GAME_OVER:
-            return
-
-        self.player_sprite.center_x = x
-
-    def on_mouse_press(self, x, y, button, modifiers):
+    def on_key_press(self, symbol, modifiers):
         """
         Called whenever the mouse button is clicked.
         """
 
         # Only allow the user so many bullets on screen at a time to prevent
         # them from spamming bullets.
-        if len(self.player_bullet_list) < MAX_PLAYER_BULLETS:
+        if symbol == arcade.key.SPACE:
+            # Shoot a bullet on hitting space!
+            if len(self.player_bullet_list) < MAX_PLAYER_BULLETS:
+                bullet = arcade.Sprite(":resources:images/space_shooter/laserBlue01.png", SPRITE_SCALING_LASER)
+                bullet.center_x = self.player_sprite.center_x
+                bullet.top = self.player_sprite.top
+                bullet.change_y = BULLET_SPEED
+                self.player_bullet_list.append(bullet)
+                arcade.play_sound(self.gun_sound)
 
-            # Gunshot sound
-            arcade.play_sound(self.gun_sound)
-
-            # Create a bullet
-            bullet = arcade.Sprite(":resources:images/space_shooter/laserBlue01.png", SPRITE_SCALING_LASER)
-
-            # The image points to the right, and we want it to point up. So
-            # rotate it.
-            bullet.angle = 90
-
-            # Give the bullet a speed
-            bullet.change_y = BULLET_SPEED
-
-            # Position the bullet
-            bullet.center_x = self.player_sprite.center_x
-            bullet.bottom = self.player_sprite.top
-
-            # Add the bullet to the appropriate lists
-            self.player_bullet_list.append(bullet)
 
     def update_enemies(self):
 
@@ -237,67 +193,6 @@ class MyGame(arcade.Window):
                 else:
                     enemy.texture = self.enemy_textures[1]
 
-    def allow_enemies_to_fire(self):
-        """
-        See if any enemies will fire this frame.
-        """
-        # Track which x values have had a chance to fire a bullet.
-        # Since enemy list is build from the bottom up, we can use
-        # this to only allow the bottom row to fire.
-        x_spawn = []
-        for enemy in self.enemy_list:
-            # Adjust the chance depending on the number of enemies. Fewer
-            # enemies, more likely to fire.
-            chance = 4 + len(self.enemy_list) * 4
-
-            # Fire if we roll a zero, and no one else in this column has had
-            # a chance to fire.
-            if random.randrange(chance) == 0 and enemy.center_x not in x_spawn:
-                # Create a bullet
-                bullet = arcade.Sprite(":resources:images/space_shooter/laserRed01.png", SPRITE_SCALING_LASER)
-
-                # Angle down.
-                bullet.angle = 180
-
-                # Give the bullet a speed
-                bullet.change_y = -BULLET_SPEED
-
-                # Position the bullet so its top id right below the enemy
-                bullet.center_x = enemy.center_x
-                bullet.top = enemy.bottom
-
-                # Add the bullet to the appropriate list
-                self.enemy_bullet_list.append(bullet)
-
-            # Ok, this column has had a chance to fire. Add to list so we don't
-            # try it again this frame.
-            x_spawn.append(enemy.center_x)
-
-    def process_enemy_bullets(self):
-
-        # Move the bullets
-        self.enemy_bullet_list.update()
-
-        # Loop through each bullet
-        for bullet in self.enemy_bullet_list:
-            # Check this bullet to see if it hit a shield
-            hit_list = arcade.check_for_collision_with_list(bullet, self.shield_list)
-
-            # If it did, get rid of the bullet and shield blocks
-            if len(hit_list) > 0:
-                bullet.remove_from_sprite_lists()
-                for shield in hit_list:
-                    shield.remove_from_sprite_lists()
-                continue
-
-            # See if the player got hit with a bullet
-            if arcade.check_for_collision_with_list(self.player_sprite, self.enemy_bullet_list):
-                self.game_state = GAME_OVER
-
-            # If the bullet falls off the screen get rid of it
-            if bullet.top < 0:
-                bullet.remove_from_sprite_lists()
-
     def process_player_bullets(self):
 
         # Move the bullets
@@ -305,16 +200,6 @@ class MyGame(arcade.Window):
 
         # Loop through each bullet
         for bullet in self.player_bullet_list:
-
-            # Check this bullet to see if it hit a enemy
-            hit_list = arcade.check_for_collision_with_list(bullet, self.shield_list)
-            # If it did, get rid of the bullet
-            if len(hit_list) > 0:
-                bullet.remove_from_sprite_lists()
-                for shield in hit_list:
-                    shield.remove_from_sprite_lists()
-                continue
-
             # Check this bullet to see if it hit a enemy
             hit_list = arcade.check_for_collision_with_list(bullet, self.enemy_list)
 
@@ -341,8 +226,6 @@ class MyGame(arcade.Window):
             return
 
         self.update_enemies()
-        self.allow_enemies_to_fire()
-        self.process_enemy_bullets()
         self.process_player_bullets()
 
         if len(self.enemy_list) == 0:

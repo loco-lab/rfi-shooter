@@ -35,7 +35,7 @@ arcade.Sprite.set_texture = 1
 GAME_OVER = 1
 PLAY_GAME = 0
 
-NFREQS = 50
+NFREQS = 40
 PIXEL_SIZE = SCREEN_WIDTH // NFREQS
 
 class MyGame(arcade.Window):
@@ -50,15 +50,10 @@ class MyGame(arcade.Window):
         self.player_list = None
         self.enemy_list = None
         self.player_bullet_list = None
-
+        self.background_List = None
         #variables that will hold the RFI attributes
         #will determine where the RFI is located on the screen
         
-        #the clean data array is the spectra array. Is a 2D array that contains the time and frequency
-        self.clean_data = [] #x and y-axis
-        self.rfi_channels = [] #is a list of lists which contain the channels that have RFI
-        self.rfi_amplitude = [] #determines the intensity of the RFI
-
         # State of the game
         self.game_state = PLAY_GAME
 
@@ -83,33 +78,35 @@ class MyGame(arcade.Window):
 
         #the zip function will match the channel list with its corresponding amplitude list
         #go through and zip each list again to match the channel with its corresponding amplitude
-        for i, (channel_lst, amplitude_lst) in enumerate(zip(self.rfi_channels, self.rfi_amplitude)):
+        for i, (channel_lst, amplitude_lst) in enumerate(zip(self.rfi_channels, self.rfi_amplitudes)):
             for channel, amplitude in zip(channel_lst, amplitude_lst):
                 
                 # Create the enemy instance
 
                 enemy = arcade.SpriteSolidColor(PIXEL_SIZE, PIXEL_SIZE, (255, 0, 0))
 
-
                 # Position the enemy
-                enemy.left_x = channel * PIXEL_SIZE
+                enemy.center_x = channel * PIXEL_SIZE
                 enemy.center_y = i * PIXEL_SIZE
                 enemy.change_y = -SCREEN_SPEED
 
                 # Add the enemy to the lists
+                print("adding enemy!!")
                 self.enemy_list.append(enemy)
 
+        
         # Create the background of squares
-        self.squares = []
         data_range = (self.clean_data.max() - self.clean_data.min())
         self.clean_data -= self.clean_data.min()
         self.clean_data = self.clean_data / (data_range / 255.0)
         self.clean_data = self.clean_data.astype(int)
 
+        self.background_list = arcade.ShapeElementList()
         for it, t in enumerate(self.clean_data):
             for inu, amp in enumerate(t):
                 # Create a somewhat red square at a particular location
-                self.squares.append([inu*PIXEL_SIZE, (inu+1)*PIXEL_SIZE, (it+1)*PIXEL_SIZE, it*PIXEL_SIZE, (amp, amp, 0)])
+                sprite = arcade.create_rectangle_filled(inu*PIXEL_SIZE, it*PIXEL_SIZE, PIXEL_SIZE, PIXEL_SIZE, (amp, amp, 0))
+                self.background_list.append(sprite)
 
     def setup(self):
         """
@@ -145,10 +142,8 @@ class MyGame(arcade.Window):
         # This command has to happen before we start drawing
         self.clear()
 
-        for sq in self.squares:
-            arcade.draw_lrtb_rectangle_filled(*sq)
-
         # Draw all the sprites.
+        self.background_list.draw()
         self.enemy_list.draw()
         self.player_bullet_list.draw()
         self.player_list.draw()
@@ -193,33 +188,7 @@ class MyGame(arcade.Window):
 
 
     def update_enemies(self):
-
-        # Move the enemy vertically
-#        for enemy in self.enemy_list:
-#            enemy.center_x += self.enemy_change_x
-
-        # Check every enemy to see if any hit the edge. If so, reverse the
-        # direction and flag to move down.
-        move_down = False
-        # for enemy in self.enemy_list:
-        #     if enemy.right > RIGHT_ENEMY_BORDER and self.enemy_change_x > 0:
-        #         self.enemy_change_x *= -1
-        #         move_down = True
-        #     if enemy.left < LEFT_ENEMY_BORDER and self.enemy_change_x < 0:
-        #         self.enemy_change_x *= -1
-        #         move_down = True
-
-        # Did we hit the edge above, and need to move t he enemy down?
-        # if move_down:
-        #     # Yes
-        #     for enemy in self.enemy_list:
-        #         # Move enemy down
-        #         enemy.center_y -= ENEMY_MOVE_DOWN_AMOUNT
-        #         # Flip texture on enemy so it faces the other way
-        #         if self.enemy_change_x > 0:
-        #             enemy.texture = self.enemy_textures[0]
-        #         else:
-        #             enemy.texture = self.enemy_textures[1]
+        self.enemy_list.update()
 
     def process_player_bullets(self):
 
@@ -248,11 +217,7 @@ class MyGame(arcade.Window):
                 bullet.remove_from_sprite_lists()
 
     def update_background_squares(self):
-        for sq in self.squares:
-            sq[2] -= SCREEN_SPEED
-            sq[3] -= SCREEN_SPEED
-
-        self.squares = [s for s in self.squares if s[3]>-PIXEL_SIZE]
+        self.background_list.move(0, -SCREEN_SPEED)
 
     def on_update(self, delta_time):
         """ Movement and game logic """
@@ -264,18 +229,15 @@ class MyGame(arcade.Window):
         self.process_player_bullets()
         self.update_background_squares()
 
-        if len(self.enemy_list) == 0:
-            self.setup_level_one()
-
     def read_data(self):
         """read data from an npz file"""
         from numpy import load
-        self.clean_data = np.random.rand(100, 50)
+        self.clean_data = np.random.rand(30, NFREQS)
         self.rfi_channels = []
         self.rfi_amplitudes = []
 
         for t in self.clean_data:
-            n = np.random.poisson(10)
+            n = np.random.poisson(3)
             self.rfi_channels.append(np.random.choice(self.clean_data.shape[1], n, replace=False))
             self.rfi_amplitudes.append(5*np.random.uniform(size=n))
 

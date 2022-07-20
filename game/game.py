@@ -30,7 +30,6 @@ SCREEN_SPEED = 2
 
 MAX_PLAYER_BULLETS = 50
 
-arcade.Sprite.set_texture = 1
 # Game state
 GAME_OVER = 1
 PLAY_GAME = 0

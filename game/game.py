@@ -15,7 +15,10 @@ python -m arcade.examples.slime_invaders
 """
 import random
 import arcade
-import numpy
+#import numpy
+WIDTH = 800
+HEIGHT = 600
+SPRITE_SCALING = 0.5
 
 SPRITE_SCALING_PLAYER = 0.5
 SPRITE_SCALING_enemy = 0.5
@@ -36,14 +39,30 @@ arcade.Sprite.set_texture = 1
 GAME_OVER = 1
 PLAY_GAME = 0
 
+import arcade
+import arcade.gui
 
-class MyGame(arcade.Window):
+class MenuView(arcade.View):
+    def on_show_view(self):
+        arcade.set_background_color(arcade.color.WHITE)
+
+    def on_draw(self):
+        self.clear()
+        arcade.draw_text("Click to start", WIDTH / 2, HEIGHT / 2,
+                          arcade.color.BLACK, font_size=50, anchor_x="center")
+        #arcade.draw_text("Click to start", WIDTH / 2, HEIGHT / 2 - 75,
+                         #arcade.color.GRAY, font_size=20, anchor_x="center")
+
+    def on_mouse_press(self, _x, _y, _button, _modifiers):
+        game_view = MyGame()
+        MyGame.setup(game_view)
+        self.window.show_view(game_view)
+
+class MyGame(arcade.View):
     """ Main application class. """
 
     def __init__(self):
-        """ Initializer """
-        # Call the parent class initializer
-        super().__init__(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE)
+        super().__init__()
 
         # Variables that will hold sprite lists
         self.player_list = None
@@ -66,7 +85,7 @@ class MyGame(arcade.Window):
         self.score = 0
 
         # Don't show the mouse cursor
-        self.set_mouse_visible(False)
+        #self.set_mouse_visible(False)
 
         # Load sounds. Sounds from kenney.nl
         self.gun_sound = arcade.load_sound(":resources:sounds/hurt5.wav")
@@ -253,11 +272,108 @@ class MyGame(arcade.Window):
             #self.rfi_frequency
             #self.rfi_intensity
 
+
+# class QuitButton(arcade.gui.UIFlatButton):
+#     def on_click(self, event: arcade.gui.UIOnClickEvent):
+#         arcade.exit()
+
+# class StartButton(arcade.gui.UIFlatButton):
+#     def on_click(self, event: arcade.gui.UIOnClickEvent):
+#         # window = MyGame()
+#         # #window.read_data()
+#         # window.setup()
+#         # arcade.run()
+#         arcade.exit()
+
+
+# class MyWindow(arcade.Window):
+#     def __init__(self):
+#         super().__init__(800, 600, "UIFlatButton Example", resizable=True)
+
+#         # --- Required for all code that uses UI element,
+#         # a UIManager to handle the UI.
+#         self.manager = arcade.gui.UIManager()
+#         self.manager.enable()
+
+#         # Set background color
+#         arcade.set_background_color(arcade.color.DARK_BLUE_GRAY)
+
+#         # Render button
+#         default_style = {
+#             "font_name": ("calibri", "arial"),
+#             "font_size": 15,
+#             "font_color": arcade.color.WHITE,
+#             "border_width": 2,
+#             "border_color": None,
+#             "bg_color": (21, 19, 21),
+
+#             # used if button is pressed
+#             "bg_color_pressed": arcade.color.WHITE,
+#             "border_color_pressed": arcade.color.WHITE,  # also used when hovered
+#             "font_color_pressed": arcade.color.BLACK,
+#         }
+
+#         red_style = {
+#             "font_name": ("calibri", "arial"),
+#             "font_size": 15,
+#             "font_color": arcade.color.WHITE,
+#             "border_width": 2,
+#             "border_color": None,
+#             "bg_color": arcade.color.REDWOOD,
+
+#             # used if button is pressed
+#             "bg_color_pressed": arcade.color.WHITE,
+#             "border_color_pressed": arcade.color.RED,  # also used when hovered
+#             "font_color_pressed": arcade.color.RED,
+#         }
+
+#         # Create a vertical BoxGroup to align buttons
+#         self.v_box = arcade.gui.UIBoxLayout(space_between=20)
+
+#         # Create the buttons
+#         start_button = StartButton(text="Start Game", width=200)
+#         self.v_box.add(start_button.with_space_around(bottom=20))
+
+#         quit_button = QuitButton(text="Quit", width=200)
+#         self.v_box.add(quit_button)
+
+#         # Create a widget to hold the v_box widget, that will center the buttons
+#         self.manager.add(
+#             arcade.gui.UIAnchorWidget(
+#                 anchor_x="center_x",
+#                 anchor_y="center_y",
+#                 child=self.v_box)
+#         )
+#     # def on_click_start(self, event):
+#     #     print("Start:", event)
+        
+#     def on_draw(self):
+#         self.clear()
+#         self.manager.draw()
+    
+# class MenuView(arcade.View):
+    # def on_show_view(self):
+    #     arcade.set_background_color(arcade.color.WHITE)
+
+    # def on_draw(self):
+    #     self.clear()
+    #     arcade.draw_text("Menu Screen", WIDTH / 2, HEIGHT / 2,
+    #                      arcade.color.BLACK, font_size=50, anchor_x="center")
+    #     arcade.draw_text("Click to advance.", WIDTH / 2, HEIGHT / 2 - 75,
+    #                      arcade.color.GRAY, font_size=20, anchor_x="center")
+
+    # def on_mouse_press(self, _x, _y,_button, _modifiers):
+    #     game = MyGame()
+    #     self.window.show_view(game)
+
+
 def main():
-    window = MyGame()
-    #window.read_data()
-    window.setup()
+    window = arcade.Window(WIDTH, HEIGHT, "Different Views Example")
+    window.total_score = 0
+    menu_view = MenuView()
+    window.show_view(menu_view)
     arcade.run()
+
 
 
 if __name__ == "__main__":
